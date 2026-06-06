@@ -45,13 +45,24 @@ except ImportError:
 IS_WINDOWS = sys.platform == "win32"
 # On Windows prefer powershell.exe; on WSL/Linux with powershell installed use pwsh.
 # If neither is available, Windows backend functions will bail out gracefully.
-POWERSHELL_EXE = shutil.which("powershell.exe") or shutil.which("pwsh") or ""
+_PWSH_CANDIDATES = [shutil.which("powershell.exe"), shutil.which("pwsh")]
+# Verify the found binary actually exists and is executable (shutil.which can return
+# paths that don't work inside Docker containers or WSL2 interop)
+POWERSHELL_EXE = ""
+for _c in _PWSH_CANDIDATES:
+    if _c and os.path.isfile(_c) and os.access(_c, os.X_OK):
+        POWERSHELL_EXE = _c
+        break
+if not POWERSHELL_EXE:
+    pass  # Windows spooler backend disabled; LOG not yet available
 
 LOG = logging.getLogger("epson-mcp")
+if not POWERSHELL_EXE:
+    LOG.info("No PowerShell/pwsh found – Windows spooler backend disabled")
 
 DEFAULT_PORT = int(os.environ.get("EPSON_MCP_PORT", "18790"))
 DEFAULT_BIND = os.environ.get("EPSON_MCP_BIND", "0.0.0.0")
-PRINTER_HOST = os.environ.get("EPSON_MCP_PRINTER_HOST", "host.docker.internal")
+PRINTER_HOST = os.environ.get("EPSON_MCP_PRINTER_HOST", "192.168.4.21")
 PRINTER_HOST_FALLBACK = os.environ.get("EPSON_MCP_PRINTER_HOST_FALLBACK", "192.168.4.21")
 PRINTER_PORTS = {
     "raw": int(os.environ.get("EPSON_MCP_RAW_PORT", "19100")),
@@ -566,6 +577,8 @@ def _post_to_windows_spooler(payload: bytes, job_name: str) -> dict:
             with open(out_path, "r", encoding="utf-8") as f:
                 return json.load(f)
         return {"ok": False, "error": proc.stderr or proc.stdout or "no output file"}
+    except FileNotFoundError:
+        return {"ok": False, "error": "powershell not available on this platform"}
     except Exception as e:
         return {"ok": False, "error": str(e)}
 
@@ -733,6 +746,8 @@ def list_jobs() -> dict:
              "-File", helper, "-Printer", WINDOWS_PRINTER_NAME],
             text=True, timeout=30)
         return {"ok": True, "raw": out}
+    except FileNotFoundError:
+        return {"ok": False, "error": "powershell not available on this platform"}
     except Exception as e:
         return {"ok": False, "error": str(e)}
 
@@ -752,6 +767,8 @@ def cancel_job(job_id: int) -> dict:
              "-JobId", str(job_id)],
             text=True, timeout=30)
         return {"ok": True, "raw": out}
+    except FileNotFoundError:
+        return {"ok": False, "error": "powershell not available on this platform"}
     except Exception as e:
         return {"ok": False, "error": str(e)}
 

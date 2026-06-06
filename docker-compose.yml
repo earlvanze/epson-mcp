@@ -5,35 +5,30 @@ services:
       dockerfile: Dockerfile
     image: epson-mcp:local
     init: true
-    restart: on-failure
+    restart: unless-stopped
     stop_grace_period: 30s
     ports:
-      - "18791:18791"
+      - "18790:18790"
     extra_hosts:
       - host.docker.internal:host-gateway
     environment:
       EPSON_MCP_TRANSPORT: "http"
       EPSON_MCP_BIND: "0.0.0.0"
-      EPSON_MCP_PORT: "18791"
+      EPSON_MCP_PORT: "18790"
       EPSON_MCP_PRINTER_HOST: "192.168.4.21"
       EPSON_MCP_RAW_PORT: "9100"
       EPSON_MCP_LPD_PORT: "515"
       EPSON_MCP_SEND_ATTEMPTS: "5"
       EPSON_MCP_SEND_BACKOFF: "0.5"
-      EPSON_MCP_AUTH_TOKEN: "${EPSON_MCP_AUTH_TOKEN:-}"
-      EPSON_MCP_WINDOWS_PRINTER: "${EPSON_MCP_WINDOWS_PRINTER:-Epson_WF2250}"
-      EPSON_MCP_WIN_SCRIPT_DIR: "/win-scripts"
-      EPSON_MCP_SHARE_DIR: "/share"
+      EPSON_MCP_AUTH_TOKEN: "9830616702874b8692cc4ddbb83b4bea"
       EPSON_MCP_TCP_MAX_PAYLOAD: "55000"
       EPSON_MCP_DPI_MIN: "72"
-      EPSON_MCP_FAILOVER_MODE: ""
-      EPSON_MCP_PRIMARY_URL: ""
-      EPSON_MCP_PRIMARY_TOKEN: ""
+      EPSON_MCP_DEFAULT_PAPER: "A4"
+      EPSON_MCP_CONNECT_TIMEOUT: "5"
     volumes:
       - epson_mcp_share:/share
-      - ./win-scripts:/win-scripts:ro
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:18791/healthz"]
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:18790/healthz"]
       interval: 30s
       timeout: 5s
       retries: 3
