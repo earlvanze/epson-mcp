@@ -1,0 +1,24 @@
+manifestVersion: 1.1
+id: epson-mcp
+category: productivity
+name: Epson MCP
+tagline: Print, scan, copy and job control for the Epson WF-2250 — exposed over Tailnet
+description: >-
+  A Model-Context-Protocol server for the Epson WF-2250 (and any other network-attached
+  Epson inkjet that speaks ESC/P-R over TCP/9100).  Exposes print, status, jobs and
+  ink tools to any OpenClaw container or agentic harness on the Tailnet.  Scan and
+  copy are reported as unsupported on this model (the WF-2250 does not provide
+  network-scanning services).  Failover pair: this app runs on Cyber primary and
+  Umbrel as a warm standby.
+version: "0.1.0"
+port: 18790
+developer: earlvanze
+website: https://cyber.talpa-stargazer.ts.net
+repo: ""
+support: ""
+dependencies: []
+submitter: earlvanze
+submission: ""
+path: ""
+defaultUsername: ""
+defaultPassword: ""
